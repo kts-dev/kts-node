@@ -1,0 +1,28 @@
+{
+  "name": "kts-client",
+  "version": "0.0.1",
+  "description": "SDK client for kingsoft table service (KTS)",
+  "main": "lib/kts.js",
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leegons/kts-node"
+  },
+  "keywords": [
+    "sdk",
+    "client",
+    "kts"
+  ],
+  "author": "lijian7 <lijian7@kingsoft.com>; wanglonglong <wanglonglong@kingsoft.com>",
+  "license": "ISC",
+  "dependencies": {
+    "protobufjs": "*"
+  },
+  "devDependencies": {
+    "should": "*",
+    "eventproxy": "*",
+    "bufferhelper": "*"
+  }
+}

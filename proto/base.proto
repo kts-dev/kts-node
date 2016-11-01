@@ -1,0 +1,53 @@
+package com.kingsoft.services.table.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+enum Code {
+    kOk = 0;
+    kAccessDeniedException = 1;
+    kLimitExceededException = 2;
+    kProvisionedThroughputExceededException = 3;
+    kResourceInUseException = 4;
+    kResourceNotFoundException = 5;
+    kThrottlingException = 6;
+    kValidationException = 7;
+    kInternalServerError = 8;
+    kServiceUnavailableException = 9;
+    kConditionCheckException = 10;
+}
+
+message PrimaryKey {
+    required ColumnValue partition_key = 1;
+    optional ColumnValue row_key = 2;
+}
+
+message CompoundValue {
+    repeated ColumnValue column_values = 1;
+}
+
+message ColumnValue {
+    required ColumnType column_type = 1;
+    optional bool bool_value = 2;
+    optional int32 int32_value = 3;
+    optional int64 int64_value = 4;
+    optional double double_value = 5;
+    optional string string_value = 6;
+    optional bytes bytes_value = 7;
+    optional bytes compound_value = 8;
+    optional bytes list_value = 9;
+    optional bytes map_value = 10;
+}
+
+enum ColumnType {
+    kBoolean = 0;
+    kInt32 = 1;
+    kInt64 = 2;
+    kDouble = 3;
+    kString = 4;
+    kBytes = 5;
+    kCompound = 6;
+    kList = 7;
+    kMap = 8;
+}
+

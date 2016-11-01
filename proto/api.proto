@@ -1,0 +1,27 @@
+import "table.proto";
+
+option cc_generic_services = true;
+option py_generic_services = true;
+
+service TableService {
+    // 管理类接口
+    rpc CreateTable(com.kingsoft.services.table.proto.CreateTableRequest) returns (com.kingsoft.services.table.proto.CreateTableResponse);
+    rpc DeleteTable(com.kingsoft.services.table.proto.DeleteTableRequest) returns (com.kingsoft.services.table.proto.DeleteTableResponse);
+    rpc UpdateTable(com.kingsoft.services.table.proto.UpdateTableRequest) returns (com.kingsoft.services.table.proto.UpdateTableResponse);
+    rpc DescribeTable(com.kingsoft.services.table.proto.DescribeTableRequest) returns (com.kingsoft.services.table.proto.DescribeTableResponse);
+    rpc ListTables(com.kingsoft.services.table.proto.ListTablesRequest) returns (com.kingsoft.services.table.proto.ListTablesResponse);
+    rpc EnableTable(com.kingsoft.services.table.proto.EnableTableRequest) returns (com.kingsoft.services.table.proto.EnableTableResponse);
+    rpc DisableTable(com.kingsoft.services.table.proto.DisableTableRequest) returns (com.kingsoft.services.table.proto.DisableTableResponse);
+    // 数据类接口
+    rpc GetRow(com.kingsoft.services.table.proto.GetRowRequest) returns (com.kingsoft.services.table.proto.GetRowResponse);
+    rpc PutRow(com.kingsoft.services.table.proto.PutRowRequest) returns (com.kingsoft.services.table.proto.PutRowResponse);
+    rpc UpdateRow(com.kingsoft.services.table.proto.UpdateRowRequest) returns (com.kingsoft.services.table.proto.UpdateRowResponse);
+    rpc DeleteRow(com.kingsoft.services.table.proto.DeleteRowRequest) returns (com.kingsoft.services.table.proto.DeleteRowResponse);
+    rpc Scan(com.kingsoft.services.table.proto.ScanRequest) returns (com.kingsoft.services.table.proto.ScanResponse);
+    rpc Query(com.kingsoft.services.table.proto.QueryRequest) returns (com.kingsoft.services.table.proto.QueryResponse);
+    rpc BatchGetRow(com.kingsoft.services.table.proto.BatchGetRowRequest) returns (com.kingsoft.services.table.proto.BatchGetRowResponse);
+    rpc BatchWriteRow(com.kingsoft.services.table.proto.BatchWriteRowRequest) returns (com.kingsoft.services.table.proto.BatchWriteRowResponse);
+
+    rpc Echo(com.kingsoft.services.table.proto.EchoRequest) returns (com.kingsoft.services.table.proto.EchoResponse);
+}
+

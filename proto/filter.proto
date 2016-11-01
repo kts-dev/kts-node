@@ -1,0 +1,152 @@
+package com.kingsoft.services.table.proto;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_outer_classname = "FilterProtos";
+// This file contains protocol buffers that are used for comparators (e.g. in filters)
+
+import "base.proto";
+
+message Condition {
+    optional PrimaryKey primary_key = 1;
+    required string column_name = 2;
+    required CompareType compare_type = 3;
+    optional ColumnValue value = 4;
+}
+
+message KeyCondition {
+    required CompareType compare_type = 1;
+    repeated ColumnValue column_values = 2;
+}
+
+enum CompareType {
+    kLess = 0;
+    kLessOrEqual = 1;
+    kEqual= 2;
+    kNotEqual = 3;
+    kGreaterOrEqual = 4;
+    kGreater = 5;
+    kNoOp= 6;
+}
+
+message Comparator {
+    required string name = 1;
+    optional bytes serialized_comparator = 2;
+}
+
+message Filter {
+    required string name = 1;
+    optional bytes serialized_filter = 2;
+}
+
+message CompareFilter {
+    required CompareType compare_type = 1;
+    optional Comparator comparator = 2;
+}
+
+message DataValueComparator {
+    required ColumnValue value = 1;
+}
+
+message NullComparator {
+}
+
+message BinaryPrefixComparator {
+    required bytes value = 1;
+}
+
+message BitComparator {
+    required bytes value = 1;
+    required BitwiseOp bitwise_op = 2;
+
+    enum BitwiseOp {
+        AND = 1;
+        OR = 2;
+        XOR = 3;
+    }
+}
+
+message RegexStringComparator {
+    required string pattern = 1;
+    required int32 flags = 2;
+}
+
+message SubstringComparator {
+    required string substr = 1;
+}
+
+message ColumnCountFilter {
+    required int32 limit = 1;
+}
+
+message DependentColumnFilter {
+    required CompareFilter compare_filter = 1;
+    required string column_name = 2;
+    optional bool drop_dependent_column = 3 [default = false];
+}
+
+message ColumnFilter {
+    required CompareFilter compare_filter = 1;
+}
+
+message ColumnPrefixFilter {
+    required string prefix = 1;
+}
+
+message FilterList {
+    required Operator operator = 1;
+    repeated Filter filters = 2;
+
+    enum Operator {
+        MUST_PASS_ALL = 1;
+        MUST_PASS_ONE = 2;
+    }
+}
+
+message KeyOnlyFilter {
+    required bool len_as_val = 1;
+}
+
+message FirstKeyOnlyFilter {
+    required bool len_as_val = 1;
+}
+
+message PrefixFilter {
+    optional ColumnValue partition_key_prefix = 1;
+    optional ColumnValue row_key_prefix = 2;
+}
+
+message RandomRowFilter {
+    required float chance = 1;
+}
+
+message RowFilter {
+     optional CompareFilter partition_key_filter = 1;
+     optional CompareFilter row_key_filter = 2;
+}
+
+message SingleColumnValueFilter {
+    required string column_name = 1;
+    required CompareFilter compare_filter = 2;
+    optional bool filter_if_missing = 3 [default = true];
+}
+
+message SingleColumnValueExcludeFilter {
+    required SingleColumnValueFilter single_column_value_filter = 1;
+}
+
+message SkipFilter {
+    required Filter filter = 1;
+}
+
+message ValueFilter {
+    required CompareFilter compare_filter = 1;
+}
+
+message WhileMatchFilter {
+    required Filter filter = 1;
+}
+
+message CompoundKeyFilter {
+    repeated KeyCondition key_conditions = 1;
+}
