@@ -1,5 +1,5 @@
 {
-  "name": "kts-client",
+  "name": "kts",
   "version": "0.0.1",
   "description": "SDK client for kingsoft table service (KTS)",
   "main": "lib/kts.js",
@@ -18,11 +18,11 @@
   "author": "lijian7 <lijian7@kingsoft.com>; wanglonglong <wanglonglong@kingsoft.com>",
   "license": "ISC",
   "dependencies": {
-    "protobufjs": "*"
+    "protobufjs": "*",
+    "bufferhelper": "*"
   },
   "devDependencies": {
     "should": "*",
-    "eventproxy": "*",
-    "bufferhelper": "*"
+    "eventproxy": "*"
   }
 }

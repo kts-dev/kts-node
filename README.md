@@ -18,7 +18,7 @@ $ npm install kts
 
 ## 使用方法
 
-### 建立kts连接
+### 建立client实例
 
 ```javascript
 const Kts = require('kts');
@@ -214,7 +214,7 @@ client.scan('tableName', {
   },
   endKey: {
     partitionKey: 'key_99',
-    rowKey: 99999
+    rowKey: 10099
   }
 }, function(err, rows, next_key) {
   if (err)
@@ -246,7 +246,7 @@ client.batchGetRow('tableName', [{
   rowKey: 10001,
   strongConsistent: true
 }, {
-  partitionKey: 'key_1',
+  partitionKey: 'key_2',
   rowKey: 10002
 }], function(err, rows) {
   if (err)
@@ -277,7 +277,7 @@ client.batchWriteRow('tableName', [{
 }, {
   // 删除指定列
   key: {
-    partitionKey: 'key_1',
+    partitionKey: 'key_2',
     rowKey: 10002
   },
   action: 'DELETE',
@@ -285,7 +285,7 @@ client.batchWriteRow('tableName', [{
 }, {
   // 删除一行
   key: {
-    partitionKey: 'key_2',
+    partitionKey: 'key_3',
     rowKey: 10003
   },
   action: 'DELETE'
