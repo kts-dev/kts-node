@@ -1,6 +1,6 @@
 {
   "name": "kts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "SDK client for kingsoft table service (KTS)",
   "main": "lib/kts.js",
   "scripts": {

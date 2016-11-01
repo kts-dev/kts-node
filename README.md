@@ -49,42 +49,14 @@ API接口中需要传入的回调函数一般形式为`function(err, result, inf
 
 ### API列表
 
-带`*`标志的API需要单独申请使用权限
-
-- [*Create Table](#CreateTable)
-- [*List Tables](#ListTables)
-- [*Describe Table](#DescribeTable)
-- [*Delete Table](#DeleteTable)
-- [*Update Table](#UpdateTable)
+- [List Tables](#ListTables)
+- [Describe Table](#DescribeTable)
 - [Put Row](#PutRow)
 - [Get Row](#GetRow)
 - [Delete Row](#DeleteRow)
 - [Scan](#Scan)
 - [Batch Get Row](#BatchGetRow)
 - [Batch Write Row](#BatchWriteRow)
-
-<a name='CreateTable' ></a> 
-
-### *Create Table
-
-在您账号下创建一张表
-
-```javascript
-client.createTable({
-  tableName: 'tableName',
-  schema: {
-    partitionKeyType: "STRING",  // [STRING, INT64]
-    rowKeyType: "INT64"  // or null
-  },
-  provisionedThroughput: {
-    readCapacityUnits: 10,
-    writeCapacityUnits: 10
-  }
-}, function(err) {
-  if (err)
-    console.log(err);
-});
-```
 
 <a name='ListTables'> </a>
 
@@ -111,35 +83,6 @@ client.describeTable('tableName', function(err, tableDescription) {
   if (err)
     throw err;
   console.log(tableDescription);
-});
-```
-
-<a name='DeleteTable'> </a>
-
-### *Delete Table
-
-删除指定表。
-
-```javascript
-client.deleteTable('tableName', function(err) {
-  if (err)
-    console.log(err);
-});
-```
-
-<a name='UpdateTable'> </a>
-
-### *Update Table
-
-修改表的吞吐配置。
-
-```javascript
-client.updateTable('tableName', {
-  readCapacityUnits: 10,
-  writeCapacityUnits: 10
-}, function(err) {
-  if (err)
-    console.log(err);
 });
 ```
 
