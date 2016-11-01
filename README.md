@@ -49,11 +49,13 @@ API接口中需要传入的回调函数一般形式为`function(err, result, inf
 
 ### API列表
 
-- [Create Table](#CreateTable)
-- [List Tables](#ListTables)
-- [Describe Table](#DescribeTable)
-- [Delete Table](#DeleteTable)
-- [Update Table](#UpdateTable)
+带`*`标志的API需要单独申请使用权限
+
+- [*Create Table](#CreateTable)
+- [*List Tables](#ListTables)
+- [*Describe Table](#DescribeTable)
+- [*Delete Table](#DeleteTable)
+- [*Update Table](#UpdateTable)
 - [Put Row](#PutRow)
 - [Get Row](#GetRow)
 - [Delete Row](#DeleteRow)
@@ -63,7 +65,7 @@ API接口中需要传入的回调函数一般形式为`function(err, result, inf
 
 <a name='CreateTable' ></a> 
 
-### Create Table
+### *Create Table
 
 在您账号下创建一张表
 
@@ -86,7 +88,7 @@ client.createTable({
 
 <a name='ListTables'> </a>
 
-### List Tables
+### *List Tables
 
 列举您账号下所有的表名。
 
@@ -100,7 +102,7 @@ client.listTables(function(err, tableNames) {
 
 <a name='DescribeTable'> </a>
 
-### Describe Table
+### *Describe Table
 
 获得指定表的定义以及状态信息。
 
@@ -114,7 +116,7 @@ client.describeTable('tableName', function(err, tableDescription) {
 
 <a name='DeleteTable'> </a>
 
-### Delete Table
+### *Delete Table
 
 删除指定表。
 
@@ -127,7 +129,7 @@ client.deleteTable('tableName', function(err) {
 
 <a name='UpdateTable'> </a>
 
-### Update Table
+### *Update Table
 
 修改表的吞吐配置。
 
