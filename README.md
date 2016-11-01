@@ -21,12 +21,11 @@ $ npm install kts
 ### 建立kts连接
 
 ```javascript
-const Kts = require('kts-node');
+const Kts = require('kts');
 var client = new Kts({
   endpoint: 'http://bj-region1-kts.ksyun.com',  // just demo
   accessKey: 'KTSAccessKey',
   secretKey: 'KTSSecretKey',
-  timeout: 3000,  // 单位ms，表示单次请求最大允许的等待时间，默认为3000
 });
 ```
 
@@ -69,22 +68,11 @@ API接口中需要传入的回调函数一般形式为`function(err, result, inf
 在您账号下创建一张表
 
 ```javascript
-// 方式1
-client.createTable('tableName', function(err) {
-  if (err)
-    console.log(err);
-});
-```
-
-该方法使用默认值创建一张表，其作用（默认值）和方式2创建的一致。
-
-```javascript
-// 方式2
 client.createTable({
   tableName: 'tableName',
   schema: {
-    partitionKeyType: "STRING"
-    // rowKeyType: "INT32"
+    partitionKeyType: "STRING",  // [STRING, INT64]
+    rowKeyType: "INT64"  // or null
   },
   provisionedThroughput: {
     readCapacityUnits: 10,
@@ -162,7 +150,7 @@ client.updateTable('tableName', {
 ```javascript
 client.putRow('tableName', {
   key: {
-    partitionKey: 'key_0',
+    partitionKey: 'key_1',
     rowKey: 10001
   },
   columns: {
@@ -184,7 +172,7 @@ client.putRow('tableName', {
 
 ```javascript
 client.getRow('tableName', {
-  partitionKey: 'key_0',
+  partitionKey: 'key_1',
   rowKey: 10001,
   strongConsistent: true  // 默认为false, 表示非强一致性读
 }, function(err, row) {
@@ -202,37 +190,13 @@ client.getRow('tableName', {
 
 ```javascript
 client.deleteRow('tableName', {
-  partitionKey: 'key_0',
+  partitionKey: 'key_1',
   rowKey: 10001
 }, function(err) {
   if (err)
     console.log(err);
 });
 ```
-
-<a name='UpdateRow'> </a>
-
-### Update Row
-
-更新一行数据。
-
-```javascript
-client.updateRow('tableName', {
-  key: {
-    partitionKey: 'key_0',
-    rowKey: 10001
-  },
-  columns: {
-    'score': 93,  // insert one column
-    'math': {action: 'DELETE'}  // delete one column
-  }
-}, function(err) {
-  if (err)
-    console.log(err);
-})
-```
-
-设置值为`{action: 'DELETE'}`来将指定列删除。注意操作**不会**检查该行以及被删除的列是否存在。
 
 <a name='Scan'> </a>
 
@@ -278,7 +242,7 @@ client.scan('tableName', function(err, rows, info) {
 
 ```javascript
 client.batchGetRow('tableName', [{
-  partitionKey: 'key_0',
+  partitionKey: 'key_1',
   rowKey: 10001,
   strongConsistent: true
 }, {
@@ -303,7 +267,7 @@ client.batchGetRow('tableName', [{
 client.batchWriteRow('tableName', [{
   // 插入一行数据
   key: {
-    partitionKey: 'key_0',
+    partitionKey: 'key_1',
     rowKey: 10001
   },
   columns: {
@@ -311,28 +275,25 @@ client.batchWriteRow('tableName', [{
     'age': 28
   }
 }, {
-  // 更新或删除列
+  // 删除指定列
   key: {
     partitionKey: 'key_1',
     rowKey: 10002
   },
-  columns: {
-    'name': 'Jack',
-    'weight': {action: 'Delete'}
-  }
+  action: 'DELETE',
+  columns: ['name']
 }, {
   // 删除一行
   key: {
     partitionKey: 'key_2',
     rowKey: 10003
   },
-  action: 'Delete'
+  action: 'DELETE'
 }], function(err) {
   if (err)
     throw err;
 });
 ```
 
-**Batch Write Row** 支持批量的插入、修改以及删除命令，不支持在单个Batch命令中多次修改同一行数据。其中，与**Put Row**一致，如果插入的行已经在kts数据库中存在，则会合并插入的数据；如果插入的列已经存在则会被该次操作的列值覆盖。 
-
-删除操作中，使用`{action: 'Delete'}`来标识需要删除的元素。如果在行中存在（如示例中的*key_2*），则会删除该行；如果在列值设置如此（如示例中的*key_1*的*weight*列，则会删除该列。
+**Batch Write Row** 支持批量的插入、修改以及删除命令，不支持在单个Batch命令中多次修改同一行数据。其中，与**Put Row**一致，如果插入的行已经在kts数据库中存在，则会合并插入的数据；如果插入的列已经存在则会被该次操作的列值覆盖。
+注意一次batch命令中不能对同一行执行多次操作。
