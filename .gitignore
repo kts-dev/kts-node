@@ -1,0 +1,4 @@
+sample/*
+node_modules
+build.sh
+*/config.js

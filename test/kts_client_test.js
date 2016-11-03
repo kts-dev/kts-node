@@ -58,18 +58,18 @@ describe('kts_client_test.js', function () {
     should.equal(res.provisionedThroughput.writeCapacityUnits, writeCU);
   };
 
-  var checkObjectEquality = function(obj1, obj2){
+  var checkObjectEquality = function (obj1, obj2) {
     var keys1 = Object.keys(obj1);
     var keys2 = Object.keys(obj2);
 
-    keys1.forEach(function(key){
-      if (obj1[key] != obj2[key]){
+    keys1.forEach(function (key) {
+      if (obj1[key] != obj2[key]) {
         return false;
       }
     });
 
-    keys2.forEach(function(key){
-      if (obj2[key] != obj1[key]){
+    keys2.forEach(function (key) {
+      if (obj2[key] != obj1[key]) {
         return false;
       }
     });
@@ -151,9 +151,9 @@ describe('kts_client_test.js', function () {
     client.batchGetRow(tableName, keys, options, callback);
   };
 
-  var batchWriteRowFunc = function (tableName, rows, callback){
+  var batchWriteRowFunc = function (tableName, rows, callback) {
     client.batchWriteRow(tableName, rows, callback);
-  }
+  };
 
   before(function (done) {
     done();
@@ -439,7 +439,7 @@ describe('kts_client_test.js', function () {
         should.not.exists(err);
         describeUntilError('table_client_test', function () {
           deleteTableFunc('table_client_test', function (err, res) {
-            console.log(err)
+            console.log(err);
             should.exists(err);
             done();
           });
@@ -464,7 +464,7 @@ describe('kts_client_test.js', function () {
           should.exists(err);
           done();
         });
-      }catch(err){
+      } catch (err) {
         done();
       }
     });
@@ -475,22 +475,22 @@ describe('kts_client_test.js', function () {
           should.exists(err);
           done();
         });
-      }catch(err){
+      } catch (err) {
         done();
       }
     });
 
-    it('big int partition key put should fail', function(done) {
-      createTableFunc('table_client_test_int64_key', 'INT64', null, 100, 100, function(){
+    it('big int partition key put should fail', function (done) {
+      createTableFunc('table_client_test_int64_key', 'INT64', null, 100, 100, function () {
         try {
           putRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, columns, function (err, res) {
             should.not.exists(err);
-            getRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, true, null, function(err, data){
+            getRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, true, null, function (err, data) {
               console.log(data);
               done();
             });
           });
-        }catch(err){
+        } catch (err) {
           console.log(err);
           done();
         }
@@ -499,7 +499,7 @@ describe('kts_client_test.js', function () {
 
     it('large row key put should fail', function (done) {
       this.timeout(100000);
-      try{
+      try {
         require('fs').readFile(require('path').join(__dirname, 'Wildlife.wmv'), function read(err, data) {
           if (err) {
             throw err;
@@ -512,7 +512,7 @@ describe('kts_client_test.js', function () {
             done();
           });
         });
-      }catch(err){
+      } catch (err) {
         done();
       }
     });
@@ -647,7 +647,7 @@ describe('kts_client_test.js', function () {
       }
     });
 
-    it('batch write one rows should success', function (done){
+    it('batch write one rows should success', function (done) {
       var rows = [{
         key: {
           partitionKey: 'batch_write_one',
@@ -660,8 +660,8 @@ describe('kts_client_test.js', function () {
         action: 'PUT' // action default is PUT
       }]
 
-      batchWriteRowFunc('table_client_test', rows, function(err, data, info){
-        getRowFunc('table_client_test', 'batch_write_one', 'batch_write_row_key_one', true, null, function(err, data){
+      batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
+        getRowFunc('table_client_test', 'batch_write_one', 'batch_write_row_key_one', true, null, function (err, data) {
           should.not.exists(err);
           checkRowValid(data, 'batch_write_one', 'batch_write_row_key_one', {
             'name': 'Small Big',
@@ -673,12 +673,12 @@ describe('kts_client_test.js', function () {
       });
     });
 
-    it('batch write multi rows should success', function (done){
+    it('batch write multi rows should success', function (done) {
       this.timeout(20000);
       var rows = [];
       var ep = new EventProxy();
       for (var i = 0; i < 25; i++) {
-         rows[i] = {
+        rows[i] = {
           key: {
             partitionKey: 'batch_write_multi_' + i.toString(),
             rowKey: 'batch_write_row_key_' + i.toString()
@@ -691,7 +691,7 @@ describe('kts_client_test.js', function () {
         };
       }
 
-      batchWriteRowFunc('table_client_test', rows, function(err, data, info) {
+      batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
         console.log(err);
         console.log(data);
         for (var i = 0; i < 25; i++) {
@@ -707,7 +707,7 @@ describe('kts_client_test.js', function () {
           });
 
         }
-        ep.after('batch_write_multi_check', 25, function(list){
+        ep.after('batch_write_multi_check', 25, function (list) {
           console.log(list);
           done();
         });
