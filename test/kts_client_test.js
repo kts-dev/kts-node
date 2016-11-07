@@ -12,28 +12,43 @@ describe('kts_client_test.js', function () {
 
   var describeUntilStatus = function (tableName, status, callback) {
     describeTableFunc(tableName, function (err, res) {
-      if (res && res.tableStatus == status) {
-        callback(err, res);
-      } else {
-        describeUntilStatus(tableName, status, callback)
+      if (err){
+        console.error(err);
+        throw err;
+      }
+      if (res){
+        if (res.tableStatus == status) {
+          callback(err, res);
+        } else {
+            setTimeout(function(tableName, status, callback){
+              describeUntilStatus(tableName, status, callback)
+          }, 20, tableName, status, callback);
+        }
       }
     });
   };
 
-  var describeUntilError = function (tableName, callback) {
+  var describeUntilNotFound = function (tableName, callback) {
     describeTableFunc(tableName, function (err, result) {
       if (err) {
-        callback(err, result);
+        if (err.name == 'resourceNotFound') {
+          callback(err, result);
+        } else {
+          throw err;
+        }
       } else {
-        describeUntilError(tableName, callback)
+        setTimeout(function(tableName, callback){
+          describeUntilNotFound(tableName, callback);
+        }, 20, tableName, callback);
       }
     });
   };
 
   var createUntilDone = function (tableName, partitionKeyType, rowKeyType, readCU, writeCU, callback) {
     createTableFunc(tableName, partitionKeyType, rowKeyType, readCU, writeCU, function (err) {
-      if (err) {
-        console.error(err)
+      if (err && err.name == 'resourceInUse') {
+        console.error("resourceInUse");
+        return;
       }
       describeUntilStatus(tableName, 'active', callback);
     });
@@ -42,9 +57,13 @@ describe('kts_client_test.js', function () {
   var deleteUntilDone = function (tableName, callback) {
     deleteTableFunc(tableName, function (err, result) {
       if (err) {
-        callback(err, result)
+        if (err.name == "resourceNotFound"){
+          callback(err, result)
+        } else {
+          throw err;
+        }
       } else {
-        describeUntilError(tableName, function (err, result) {
+        describeUntilNotFound(tableName, function (err, result) {
           callback(err, result);
         })
       }
@@ -62,22 +81,21 @@ describe('kts_client_test.js', function () {
     var keys1 = Object.keys(obj1);
     var keys2 = Object.keys(obj2);
 
-    keys1.forEach(function (key) {
-      if (obj1[key] != obj2[key]) {
+    for (var key in obj1){
+      if (obj1[key] != obj2[key]){
         return false;
       }
-    });
+    }
 
-    keys2.forEach(function (key) {
-      if (obj2[key] != obj1[key]) {
+    for (var key in obj2){
+      if (obj2[key] != obj1[key]){
         return false;
       }
-    });
+    }
     return true;
   };
 
   var checkRowValid = function (res, partitionKey, rowKey, columns) {
-    console.log(res);
     should.equal(res.key.partitionKey, partitionKey);
     should.equal(res.key.rowKey, rowKey);
     should.equal(checkObjectEquality(res.columns, columns), true);
@@ -155,6 +173,26 @@ describe('kts_client_test.js', function () {
     client.batchWriteRow(tableName, rows, callback);
   };
 
+  var scanFunc = function (tableName, startKey, endKey, callback){
+    var options = {
+      startKey: startKey,
+      endKey: endKey,
+      strongConsistent: true
+    }
+    client.scan(tableName, options,callback);
+  };
+
+  var ScanAllFunc = function (tableName, callback){
+    var scanCallback = function(err, data, info){
+      console.log(info);
+      callback(err, data, info);
+      if (info.hasOwnProperty('nextStartKey')){
+        scanFunc(tableName, info.nextStartKey, null, scanCallback);
+      }
+    };
+    scanFunc(tableName, null, null, scanCallback);
+  };
+
   before(function (done) {
     done();
     // var ep = new EventProxy();
@@ -184,7 +222,7 @@ describe('kts_client_test.js', function () {
     var ep = new EventProxy();
 
     ep.all('table_client_test_deleted', function () {
-      createUntilDone('table_client_test', 'STRING', 'STRING', 1000, 1000, function (err, res) {
+      createUntilDone('table_client_test', 'STRING', 'STRING', 5000, 5000, function (err, res) {
         console.log("beforeEach create table table_client_test done\n");
         done();
       });
@@ -437,9 +475,8 @@ describe('kts_client_test.js', function () {
     it('delete again should fail', function (done) {
       deleteTableFunc('table_client_test', function (err, res) {
         should.not.exists(err);
-        describeUntilError('table_client_test', function () {
+        describeUntilNotFound('table_client_test', function () {
           deleteTableFunc('table_client_test', function (err, res) {
-            console.log(err);
             should.exists(err);
             done();
           });
@@ -480,42 +517,42 @@ describe('kts_client_test.js', function () {
       }
     });
 
-    it('big int partition key put should fail', function (done) {
-      createTableFunc('table_client_test_int64_key', 'INT64', null, 100, 100, function () {
-        try {
-          putRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, columns, function (err, res) {
-            should.not.exists(err);
-            getRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, true, null, function (err, data) {
-              console.log(data);
-              done();
-            });
-          });
-        } catch (err) {
-          console.log(err);
-          done();
-        }
-      })
-    });
+    // it('big int partition key put should fail', function (done) {
+    //   createTableFunc('table_client_test_int64_key', 'INT64', null, 100, 100, function () {
+    //     try {
+    //       putRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, columns, function (err, res) {
+    //         should.not.exists(err);
+    //         getRowFunc('table_client_test_int64_key', 1000000000000000000000000000000000000000000000000000000000000000000000000000000, null, true, null, function (err, data) {
+    //           console.log(data);
+    //           done();
+    //         });
+    //       });
+    //     } catch (err) {
+    //       console.log(err);
+    //       done();
+    //     }
+    //   })
+    // });
 
-    it('large row key put should fail', function (done) {
-      this.timeout(100000);
-      try {
-        require('fs').readFile(require('path').join(__dirname, 'Wildlife.wmv'), function read(err, data) {
-          if (err) {
-            throw err;
-          }
-          var columns = {
-            'largeColumn': data.toString()
-          };
-          putRowFunc('table_client_test', 'test_key_1', 'row_key_large_data', columns, function (err, res) {
-            should.exists(err);
-            done();
-          });
-        });
-      } catch (err) {
-        done();
-      }
-    });
+    // it('large row key put should fail', function (done) {
+    //   this.timeout(100000);
+    //   try {
+    //     require('fs').readFile(require('path').join(__dirname, 'Wildlife.wmv'), function read(err, data) {
+    //       if (err) {
+    //         throw err;
+    //       }
+    //       var columns = {
+    //         'largeColumn': data.toString()
+    //       };
+    //       putRowFunc('table_client_test', 'test_key_1', 'row_key_large_data', columns, function (err, res) {
+    //         should.exists(err);
+    //         done();
+    //       });
+    //     });
+    //   } catch (err) {
+    //     done();
+    //   }
+    // });
 
 
     it('get row before put should fail', function (done) {
@@ -591,7 +628,6 @@ describe('kts_client_test.js', function () {
 
 
   describe('batchRow', function () {
-    var ep = new EventProxy;
     var columns = {
       'column_str': 'Jack',  // string
       'column_int': 30,  // int
@@ -600,12 +636,12 @@ describe('kts_client_test.js', function () {
     };
 
     it('batch get one row should success', function (done) {
+      var ep = new EventProxy;
       ep.all('batch_get_create_one_row_done', function () {
         batchGetRowFunc('table_client_test', [{
           partitionKey: 'batch_get_one',
           rowKey: "batch_get_one_row_key"
         }], function (err, data) {
-          console.log(data);
           done();
         });
       });
@@ -617,6 +653,8 @@ describe('kts_client_test.js', function () {
     });
 
     it('batch get multi rows should success', function (done) {
+      var ep = new EventProxy;
+
       ep.after('batch_get_create_multi_row_done', 100, function (list) {
         console.log('batch_get_create_multi_row_done');
         var keys = new Array();
@@ -631,7 +669,6 @@ describe('kts_client_test.js', function () {
         var dotime = 0;
         batchGetRowFunc('table_client_test', keys, {'strongConsistent': true}, function (err, data) {
           should.not.exists(err);
-          console.log(data);
           done();
         });
 
@@ -673,7 +710,7 @@ describe('kts_client_test.js', function () {
       });
     });
 
-    it('batch write multi rows should success', function (done) {
+    it('batch write/delete rows should success', function (done) {
       this.timeout(20000);
       var rows = [];
       var ep = new EventProxy();
@@ -681,7 +718,82 @@ describe('kts_client_test.js', function () {
         rows[i] = {
           key: {
             partitionKey: 'batch_write_multi_' + i.toString(),
-            rowKey: 'batch_write_row_key_' + i.toString()
+            rowKey: i.toString()
+          },
+          columns: {
+            'name': 'column_value' + i.toString(),
+            'age': i
+          },
+          action: 'PUT' // action default is PUT
+        };
+      }
+
+
+      batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
+        for (var i = 0; i < 25; i++) {
+          var pKey = 'batch_write_multi_' + i.toString();
+          var rKey = i.toString();
+          getRowFunc('table_client_test', pKey, rKey, true, null, function (err, data) {
+            should.not.exists(err);
+            var i = data.key.rowKey;
+            checkRowValid(data, 'batch_write_multi_' + i, i, {
+              'name': 'column_value' + i,
+              'age': i
+            });
+            ep.emit('batch_write_multi_check', data.key.partitionKey);
+          });
+
+        }
+        ep.after('batch_write_multi_check', 25, function (list) {
+          ep.emit('batch_delete_start');
+        });
+      });
+
+      ep.all('batch_delete_start', function () {
+        for (var i = 0; i < 25; i++) {
+          rows[i].columns = null;
+          rows[i].action = 'DELETE';
+        }
+        batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
+          for (var i = 0; i < 25; i++) {
+            var pKey = 'batch_write_multi_' + i.toString();
+            var rKey = i.toString();
+            getRowFunc('table_client_test', pKey, rKey, true, null, function (err, data) {
+              shouldRowNotExists(data);
+              ep.emit('batch_delete_multi_check', '');
+            });
+          }
+        });
+      });
+
+      ep.after('batch_delete_multi_check', 25, function (list) {
+        done();
+      });
+
+    });
+
+    it('batch mixed write-delete should success', function (done) {
+      this.timeout(20000);
+      var ep = new EventProxy();
+      var rows = [];
+      for (var i = 0; i < 20; i++) {
+        rows[i] = {
+          key: {
+            partitionKey: 'batch_write_multi_' + i.toString(),
+            rowKey: i.toString()
+          },
+          columns: {
+            'name': 'column_value' + i.toString(),
+            'age': i
+          },
+          action: 'PUT' // action default is PUT
+        };
+      }
+      for (var i = 0; i < 20; i += 2) {
+        rows[i] = {
+          key: {
+            partitionKey: 'batch_mixed_delete_write_' + i.toString(),
+            rowKey: i.toString()
           },
           columns: {
             'name': 'column_value' + i.toString(),
@@ -692,23 +804,156 @@ describe('kts_client_test.js', function () {
       }
 
       batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
-        console.log(err);
-        console.log(data);
-        for (var i = 0; i < 25; i++) {
-          var pKey = 'batch_write_multi_' + i.toString();
-          var rKey = 'batch_write_row_key_' + i.toString();
+        should.not.exists(err)
+        for (var i = 0; i < 20; i += 2) {
+          var pKey = 'batch_mixed_delete_write_' + i.toString();
+          var rKey = i.toString();
           getRowFunc('table_client_test', pKey, rKey, true, null, function (err, data) {
-            console.log(data);
-            // checkRowValid(data, 'batch_write_one', 'batch_write_row_key_one', {
-            //   'name': 'Small Big',
-            //   'age': 31
-            // });
-            ep.emit('batch_write_multi_check', data.key.partitionKey);
+            should.not.exists(err);
+            var i = data.key.rowKey;
+            checkRowValid(data, 'batch_mixed_delete_write_' + i, i, {
+              'name': 'column_value' + i,
+              'age': i
+            });
+            ep.emit('batch_mixed_write_check', data.key.partitionKey);
           });
 
         }
-        ep.after('batch_write_multi_check', 25, function (list) {
-          console.log(list);
+        ep.after('batch_mixed_write_check', 10, function () {
+          ep.emit('batch_mixed_delete_start');
+        });
+      });
+
+      ep.all('batch_mixed_delete_start', function () {
+        for (var i = 0; i < 20; i++) {
+          if (i % 2 == 0) {
+            rows[i] = {
+              key: {
+                partitionKey: 'batch_mixed_delete_write_' + i.toString(),
+                rowKey: i.toString()
+              },
+              action: 'DELETE' // action default is PUT
+            };
+          } else {
+            rows[i] = {
+              key: {
+                partitionKey: 'batch_mixed_delete_write_' + i.toString(),
+                rowKey: i.toString()
+              },
+              columns: {
+                'name': 'column_value' + i.toString(),
+                'age': i
+              },
+              action: 'PUT' // action default is PUT
+            };
+          }
+        }
+        batchWriteRowFunc('table_client_test', rows, function (err, data, info) {
+          for (var i = 0; i < 20; i++) {
+            var pKey = 'batch_mixed_delete_write_' + i.toString();
+            var rKey = i.toString();
+            getRowFunc('table_client_test', pKey, rKey, true, null, function (err, data) {
+              should.not.exists(err);
+              var i = data.key.rowKey;
+              if (i % 2 == 0) {
+                shouldRowNotExists(data);
+              } else {
+                checkRowValid(data, 'batch_mixed_delete_write_' + i, i, {
+                  'name': 'column_value' + i,
+                  'age': i
+                });
+              }
+              ep.emit('batch_mixed_check', '');
+            });
+          }
+        });
+      });
+
+      ep.after('batch_mixed_check', 20, function (list) {
+        done();
+      });
+    });
+
+    it('scan should success', function (done) {
+      this.timeout(1000000);
+      var zeroPadding = function (num, size) {
+        var s = "000000000" + num.toString();
+        return s.substr(s.length - size);
+      };
+
+      var ep = new EventProxy();
+      for (var i = 0; i < 10000; i++) {
+        var columns = {
+          'name': 'column_value' + i.toString(),
+          'age': i
+        };
+        setTimeout(function(index, columns){
+              putRowFunc('table_client_test', 'scan_write_' + zeroPadding(index, 4), index.toString(), columns, function (err, data, info) {
+              should.not.exists(err);
+              ep.emit('scan_write_done', '');
+            });
+        }, 5 * i, i, columns);
+      }
+
+      ep.after('scan_write_done', 10000, function (list) {
+        var start = 0;
+        ScanAllFunc('table_client_test', function (err, data, info) {
+          for (var i = 0; i < data.length; i++) {
+            var index = i + start;
+            checkRowValid(data[i], 'scan_write_' + zeroPadding(index, 4), index.toString(), {
+              age: index,
+              name: 'column_value' + index.toString()
+            });
+            ep.emit('scan_check_done', index);
+          }
+          if (info.nextStartKey) {
+            start = parseInt(info.nextStartKey.rowKey)
+          }
+        });
+      });
+
+      ep.after('scan_check_done', 10000, function (list) {
+        done();
+      });
+    });
+
+    it('scan with endkey should success', function (done) {
+      this.timeout(100000);
+      var zeroPadding = function (num, size) {
+        var s = "000000000" + num.toString();
+        return s.substr(s.length - size);
+      };
+
+      var ep = new EventProxy();
+      for (var i = 0; i < 100; i++) {
+        var columns = {
+          'name': 'column_value' + i.toString(),
+          'age': i
+        };
+
+        (function(idx){
+          putRowFunc('table_client_test', 'scan_write_' + zeroPadding(idx, 4), idx.toString(), columns, function (err, data, info) {
+            should.not.exists(err);
+            ep.emit('scan_endkey_write_done', idx);
+          })
+        })(i);
+      }
+
+      ep.after('scan_endkey_write_done', 100, function (list) {
+        scanFunc('table_client_test', null, {
+          partitionKey: 'scan_write_0050',
+          rowKey: '50'
+        }, function (err, data, info) {
+          should.not.exists(err);
+          should.equal(data.length, 50);
+
+          for (var i = 0; i < data.length; i++) {
+            var index = i;
+            checkRowValid(data[i], 'scan_write_' + zeroPadding(index, 4), index.toString(), {
+              age: index,
+              name: 'column_value' + index.toString()
+            });
+          }
           done();
         });
       });
