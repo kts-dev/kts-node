@@ -223,14 +223,18 @@ describe('kts_client_test.js', function () {
 
     ep.all('table_client_test_deleted', function () {
       createUntilDone('table_client_test', 'STRING', 'STRING', 5000, 5000, function (err, res) {
-        console.log("beforeEach create table table_client_test done\n");
-        done();
+        setTimeout(function() {
+          console.log("beforeEach create table table_client_test done\n");
+          done();
+        }, 1000);
       });
     });
 
     deleteUntilDone('table_client_test', function (err, res) {
-      console.log('beforeEach delete table_client_test done\n')
-      ep.emit('table_client_test_deleted');
+      setTimeout(function() {
+        console.log('beforeEach delete table_client_test done\n');
+        ep.emit('table_client_test_deleted');
+      }, 1000);
     });
   });
 
@@ -882,7 +886,8 @@ describe('kts_client_test.js', function () {
       };
 
       var ep = new EventProxy();
-      for (var i = 0; i < 10000; i++) {
+      var num =1000;
+      for (var i = 0; i < num; i++) {
         var columns = {
           'name': 'column_value' + i.toString(),
           'age': i
@@ -895,7 +900,7 @@ describe('kts_client_test.js', function () {
         }, 5 * i, i, columns);
       }
 
-      ep.after('scan_write_done', 10000, function (list) {
+      ep.after('scan_write_done', num, function (list) {
         var start = 0;
         ScanAllFunc('table_client_test', function (err, data, info) {
           for (var i = 0; i < data.length; i++) {
@@ -912,7 +917,7 @@ describe('kts_client_test.js', function () {
         });
       });
 
-      ep.after('scan_check_done', 10000, function (list) {
+      ep.after('scan_check_done', num, function (list) {
         done();
       });
     });

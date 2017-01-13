@@ -128,4 +128,85 @@ client.batchGetRow(tableName, [{
   }
 });
 
+// filter case
+var single = {
+  filterType: filter.FilterType.SingleColumnValueFilter,
+  compare: {
+    column: {age: 214748349},
+    compareType: filter.CompareType.EQUAL
+  }
+};
+
+var myfilter = {
+  filterType: filter.FilterType.FilterList,
+  filterListType: filter.FilterListType.MUST_PASS_ONE,
+  filters: [
+    {
+      filterType: filter.FilterType.SingleColumnValueFilter,
+      compare: {
+        column: {age: 214748349},
+        compareType: filter.CompareType.EQUAL
+      }
+    },
+    {
+      filterType: filter.FilterType.SingleColumnValueFilter,
+      compare: {
+        column: {age: 2147483649},
+        compareType: filter.CompareType.EQUAL
+      }
+    }
+  ]
+};
+
+client.getRow(config.tableName, {
+  key: {
+    partitionKey: 'key_1',
+    rowKey: 10001
+  },
+  strongConsistent: false,  // optional, default is false
+  filter: myfilter
+}, function(err, result, info) {
+  if (err) {
+    console.warn(err);
+  } else {
+    console.log("getrow");
+    console.log(result);
+    console.log(info);
+  }
+});
+
+client.scan(config.tableName, {
+  'startKey': {
+    partitionKey: 'astart_partition_key',
+    rowkey: 10001
+  },
+  filter: myfilter
+}, function(err, result, info) {
+  if (err) {
+    console.warn(err);
+  } else {
+    console.log("scan");
+    console.log(result);
+    console.log(info);
+  }
+});
+
+
+client.batchGetRow(config.tableName, [{
+  partitionKey: 'key_1',
+  rowKey: 10001
+}], {
+  columns: ['name'],  // default get all columns
+  strongConsistent: true,
+  filter: myfilter
+}, function(err, result, info) {
+  if (err) {
+    console.warn(err);
+  } else {
+    console.log("batchGetRow");
+    console.log(result);
+    console.log(info);
+  }
+});
+
 console.log('end');
