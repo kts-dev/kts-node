@@ -18,7 +18,7 @@
   "author": "lijian7 <lijian7@kingsoft.com>; wanglonglong <wanglonglong@kingsoft.com>",
   "license": "ISC",
   "dependencies": {
-    "protobufjs": "5.0.1",
+    "protobufjs": "7.2.6",
     "bufferhelper": "*",
     "events": "*",
     "bluebird" :"*"
